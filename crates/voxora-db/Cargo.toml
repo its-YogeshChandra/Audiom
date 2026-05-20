@@ -1,0 +1,14 @@
+[package]
+name    = "voxora-db"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+voxora-core = { path = "../voxora-core" }
+sqlx        = { workspace = true }
+serde       = { workspace = true }
+uuid        = { workspace = true }
+time        = { workspace = true }
+thiserror   = { workspace = true }
+anyhow      = { workspace = true }
+tokio       = { workspace = true }

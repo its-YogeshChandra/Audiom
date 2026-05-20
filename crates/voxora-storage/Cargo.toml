@@ -1,0 +1,13 @@
+[package]
+name    = "voxora-storage"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+voxora-core = { path = "../voxora-core" }
+aws-sdk-s3  = { workspace = true }
+bytes       = { workspace = true }
+serde       = { workspace = true }
+thiserror   = { workspace = true }
+anyhow      = { workspace = true }
+tokio       = { workspace = true }

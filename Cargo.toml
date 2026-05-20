@@ -1,6 +1,75 @@
-[package]
-name = "Audiom"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "2"
+members = [
+    "crates/voxora-core",
+    "crates/voxora-db",
+    "crates/voxora-storage",
+    "crates/voxora-ai",
+    "crates/voxora-api",
+    "crates/voxora-signal",
+    "crates/voxora-worker",
+]
 
-[dependencies]
+[workspace.package]
+version     = "0.1.0"
+edition     = "2021"
+authors     = ["Voxora Engineering"]
+license     = "UNLICENSED"
+
+[workspace.dependencies]
+# Async runtime
+tokio       = { version = "1", features = ["full"] }
+
+# HTTP + WebSocket
+actix-web   = "4"
+actix-ws    = "0.3"
+actix-cors  = "0.7"
+actix-governor = "0.6"
+
+# Database
+sqlx        = { version = "0.8", features = ["postgres", "uuid", "time", "runtime-tokio-rustls"] }
+
+# Serialization
+serde       = { version = "1", features = ["derive"] }
+serde_json  = "1"
+
+# Auth
+argon2      = "0.5"
+jsonwebtoken = "9"
+
+# Object Storage
+aws-sdk-s3  = "1"
+
+# Message Queue
+async-nats  = "0.36"
+
+# Cache / PubSub
+fred        = { version = "9", features = ["tokio-runtime"] }
+
+# Config
+config      = "0.14"
+
+# Observability
+tracing              = "0.1"
+tracing-subscriber   = { version = "0.3", features = ["env-filter", "json"] }
+tracing-actix-web    = "0.7"
+opentelemetry        = "0.23"
+
+# TLS
+rustls      = "0.23"
+
+# Error handling
+thiserror   = "1"
+anyhow      = "1"
+
+# Validation
+validator   = { version = "0.18", features = ["derive"] }
+
+# AI / Media
+whisper-rs  = "0.11"
+ort         = "2"
+
+# Utilities
+uuid        = { version = "1", features = ["v4", "serde"] }
+bytes       = "1"
+time        = { version = "0.3", features = ["serde"] }

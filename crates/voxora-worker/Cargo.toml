@@ -1,0 +1,25 @@
+[package]
+name    = "voxora-worker"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "voxora-worker"
+path = "src/main.rs"
+
+[dependencies]
+voxora-core    = { path = "../voxora-core" }
+voxora-db      = { path = "../voxora-db" }
+voxora-storage = { path = "../voxora-storage" }
+voxora-ai      = { path = "../voxora-ai" }
+async-nats     = { workspace = true }
+bytes          = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+uuid           = { workspace = true }
+time           = { workspace = true }
+thiserror      = { workspace = true }
+anyhow         = { workspace = true }
+tokio          = { workspace = true }
+tracing        = { workspace = true }
+tracing-subscriber = { workspace = true }

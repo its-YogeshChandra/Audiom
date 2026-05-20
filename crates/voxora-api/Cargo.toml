@@ -1,0 +1,28 @@
+[package]
+name    = "voxora-api"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "voxora-api"
+path = "src/main.rs"
+
+[dependencies]
+voxora-core    = { path = "../voxora-core" }
+voxora-db      = { path = "../voxora-db" }
+voxora-storage = { path = "../voxora-storage" }
+actix-web      = { workspace = true }
+actix-cors     = { workspace = true }
+actix-governor = { workspace = true }
+tracing-actix-web = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+validator      = { workspace = true }
+jsonwebtoken   = { workspace = true }
+uuid           = { workspace = true }
+time           = { workspace = true }
+thiserror      = { workspace = true }
+anyhow         = { workspace = true }
+tokio          = { workspace = true }
+tracing        = { workspace = true }
+tracing-subscriber = { workspace = true }

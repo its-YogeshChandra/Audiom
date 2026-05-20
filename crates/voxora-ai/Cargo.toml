@@ -1,0 +1,13 @@
+[package]
+name    = "voxora-ai"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+voxora-core = { path = "../voxora-core" }
+whisper-rs  = { workspace = true }
+ort         = { workspace = true }
+bytes       = { workspace = true }
+thiserror   = { workspace = true }
+anyhow      = { workspace = true }
+tokio       = { workspace = true }
