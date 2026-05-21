@@ -30,6 +30,11 @@ pub struct UpdateSystem {
     value: String,
 }
 
+pub enum GetUser{
+    Email(String),
+    Id(Uuid),
+}
+
 
 //not using the impl 
 //going with simple functions system 
@@ -82,5 +87,20 @@ match user_data {
     }
 }   
 
-} 
+}
+
+pub async fn get_user_data(pool:&sqlx::PgPool, user_data:GetUser )-> Result<UserMainDbResult,sqlx::Error>{
+    //fetch the result on the basis of the user_data enum 
+    match user_data {
+        GetUser::Email(email) => {
+            let result = sqlx::query_as!(UserMainDbResult,"SELECT * FROM users WHERE email = $1",email).fetch_one(pool).await?;
+            return Ok(result)
+        }
+        GetUser::Id(id) => {
+            let result = sqlx::query_as!(UserMainDbResult,"SELECT * FROM users WHERE id = $1",id).fetch_one(pool).await?;
+            return Ok(result)
+        }
+    }
+    
+}
     
