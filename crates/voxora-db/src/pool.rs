@@ -13,6 +13,8 @@ pub async fn create_pool_connection() -> Result<PgPool, sqlx::Error> {
         .max_connections(5)
         .min_connections(1)
         .acquire_timeout(Duration::from_secs(5))
+        .idle_timeout(Duration::from_secs(600))
+        .max_lifetime(Duration::from_secs(1800))
         .connect(&database_url)
         .await?;
 

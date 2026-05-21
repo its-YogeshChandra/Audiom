@@ -73,3 +73,6 @@ ort         = "2.0.0-rc.12"
 uuid        = { version = "1", features = ["v4", "serde"] }
 bytes       = "1"
 time        = { version = "0.3", features = ["serde"] }
+
+# env 
+dotenvy = "0.15.7"

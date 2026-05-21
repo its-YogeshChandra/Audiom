@@ -12,3 +12,4 @@ time        = { workspace = true }
 thiserror   = { workspace = true }
 anyhow      = { workspace = true }
 tokio       = { workspace = true }
+dotenvy     = { workspace = true }
