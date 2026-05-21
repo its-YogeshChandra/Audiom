@@ -35,7 +35,7 @@ serde_json  = "1"
 
 # Auth
 argon2      = "0.5"
-jsonwebtoken = "9"
+jsonwebtoken = { version = "10.4.0",  features = ["aws_lc_rs"]}
 
 # Object Storage
 aws-sdk-s3  = "1"
