@@ -25,16 +25,11 @@ pub enum UpdateUser{
     PasswordHash(String),
 }
 
-pub struct UpdateSystem {
-    section: String,
-    value: String,
-}
 
 pub enum GetUser{
     Email(String),
     Id(Uuid),
 }
-
 
 //not using the impl 
 //going with simple functions system 
