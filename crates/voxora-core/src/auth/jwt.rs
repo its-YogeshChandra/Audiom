@@ -1,6 +1,6 @@
 use jsonwebtoken::{encode,  Header, EncodingKey, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
-
+use db_services::get_user_data;
 
 //read the secret from the env file 
 
@@ -20,6 +20,7 @@ pub struct Claims{
 
 fn create_token (){
     //get the values from the db
+    let db_result = get_user_data();
     
 
     //
