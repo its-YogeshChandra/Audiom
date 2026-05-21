@@ -1,0 +1,86 @@
+use uuid::Uuid;
+//should match the db schema in the architecture.md
+pub struct UserMainDbResult {
+    id            : Uuid, 
+    email         : String,
+    name          : String,
+    avatar_url    : Option<String>,
+    password_hash : Option<String>,
+    provider      : String,
+    created_at    : time::OffsetDateTime,
+    updated_at    : time::OffsetDateTime
+}
+
+pub struct NewUser{
+    email: String,
+    name: String,
+    password_hash: String,
+}
+
+//can we do something like only one of them can we filled when called in another part in the system 
+
+pub enum UpdateUser{
+    Email(String),
+    Name(String),
+    PasswordHash(String),
+}
+
+pub struct UpdateSystem {
+    section: String,
+    value: String,
+}
+
+
+//not using the impl 
+//going with simple functions system 
+
+pub async fn create_user(user:NewUser, pool:&sqlx::PgPool) -> Result<UserMainDbResult,sqlx::Error>{
+    //call the create function using sqlx 
+    let result = sqlx::query_as!(UserMainDbResult,"INSERT INTO users (email , name , password_hash) VALUES ($1 , $2 , $3) RETURNING *",
+    user.email,
+    user.name,
+    user.password_hash
+)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(result)
+}
+
+pub async fn update_user_data(user_id:Uuid, user_data:UpdateUser,pool:&sqlx::PgPool) -> Result<UserMainDbResult,sqlx::Error>{
+//check which field is present 
+match user_data {
+    UpdateUser::Email(email) => {
+           let result = sqlx::query_as!(UserMainDbResult,"UPDATE users SET email = $1  WHERE id = $2 RETURNING *",
+           email,
+           user_id
+           )
+           .fetch_one(pool)
+           .await?;
+        
+        return Ok(result)
+           }
+    UpdateUser::Name(name) => {
+        let result = sqlx::query_as!(UserMainDbResult,"UPDATE users SET name = $1  WHERE id = $2 RETURNING *",
+           name,
+           user_id
+           )
+           .fetch_one(pool)
+           .await?;
+        
+        return Ok(result)
+    }
+    UpdateUser::PasswordHash(password_hash) => {
+           let result = sqlx::query_as!(UserMainDbResult,"UPDATE users SET password_hash = $1  WHERE id = $2 RETURNING *",
+           password_hash,
+           user_id
+           )
+           .fetch_one(pool)
+           .await?;
+        
+        return Ok(result)
+    }
+}   
+
+} 
+    
