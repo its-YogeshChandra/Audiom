@@ -88,6 +88,8 @@ match user_data {
 }
 
 pub async fn get_user_data(pool:&sqlx::PgPool, user_data:GetUser )-> Result<UserMainDbResult,sqlx::Error>{
+    //what does this query returns 
+
     //fetch the result on the basis of the user_data enum 
     match user_data {
         GetUser::Email(email) => {
@@ -101,4 +103,17 @@ pub async fn get_user_data(pool:&sqlx::PgPool, user_data:GetUser )-> Result<User
     }
     
 }
-    
+
+pub async fn is_user_exist(pool:&sqlx::PgPool, user_data: GetUser) -> Result<bool,sqlx::Error>{
+
+    match user_data {
+        GetUser::Email(email) => {
+            let result = sqlx::query_as!(UserMainDbResult,"SELECT * FROM users WHERE email = $1",email).fetch_optional(pool).await?;
+            Ok(result.is_some())
+        }
+        GetUser::Id(id) => {
+            let result = sqlx::query_as!(UserMainDbResult,"SELECT * FROM users WHERE id = $1",id).fetch_optional(pool).await?;
+            Ok(result.is_some())
+        }
+    }
+}
