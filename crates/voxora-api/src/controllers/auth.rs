@@ -1,6 +1,6 @@
 use actix_web::{post, HttpResponse};
 use voxora_core::verify_token;
-use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist};
+use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
 
 //signup endpoint 
 #[post("/signup")]
@@ -18,8 +18,32 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
         let db_result = is_user_exist(&pool, user_data).await;
 
         match db_result {
-            Ok(value) => {},
-            Err(error) => {}
+            Ok(value) => {
+                if value == true {
+                    //send the error of user already exist back
+                    return Err(actix_web::error::ErrorInternalServerError("User already exist"));
+                }
+                else {
+                    //call the create user function 
+                    let new_user = NewUser {
+                        email: claims.email,
+                        name: claims.name,
+                        password_hash: claims.password_hash,
+                    };
+                    let db_result = create_user(new_user, &pool).await;
+                    match db_result {
+                        Ok(value) => {
+                            return Ok(HttpResponse::Ok().body("User created successfully"));
+                        }
+                        Err(error) => {
+                            return Err(actix_web::error::ErrorInternalServerError(error.to_string()));
+                        }
+                    }
+                }
+            },
+            Err(error) => {
+                return Err(actix_web::error::ErrorInternalServerError(error.to_string()))
+            }
         }
 
     } 
