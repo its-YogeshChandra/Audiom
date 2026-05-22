@@ -4719,6 +4719,7 @@ dependencies = [
  "anyhow",
  "argon2",
  "config",
+ "dotenvy",
  "jsonwebtoken",
  "serde",
  "serde_json",

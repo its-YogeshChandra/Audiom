@@ -13,4 +13,4 @@ argon2      = { workspace = true }
 jsonwebtoken = { workspace = true }
 config      = { workspace = true }
 anyhow      = { workspace = true }
-db_services = { path = "../voxora-db" }
+dotenvy     = { workspace = true}
