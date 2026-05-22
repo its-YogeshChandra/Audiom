@@ -1,20 +1,23 @@
 use uuid::Uuid;
 //should match the db schema in the architecture.md
+
+
+#[derive(Debug)]
 pub struct UserMainDbResult {
-    id            : Uuid, 
-    email         : String,
-    name          : String,
-    avatar_url    : Option<String>,
-    password_hash : Option<String>,
-    provider      : String,
-    created_at    : time::OffsetDateTime,
-    updated_at    : time::OffsetDateTime
+    pub id            : Uuid, 
+    pub email         : String,
+    pub name          : String,
+    pub avatar_url    : Option<String>,
+    pub password_hash : Option<String>,
+    pub provider      : String,
+    pub created_at    : time::OffsetDateTime,
+    pub updated_at    : time::OffsetDateTime
 }
 
 pub struct NewUser{
-    email: String,
-    name: String,
-    password_hash: String,
+   pub email: String,
+   pub name: String,
+   pub password_hash: String,
 }
 
 //can we do something like only one of them can we filled when called in another part in the system 

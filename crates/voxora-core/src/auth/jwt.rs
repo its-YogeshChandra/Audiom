@@ -9,9 +9,9 @@ use std::env;
 //create the jwt token
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Claims{
-    id: Uuid,
-    email: String,
-    name: String,
+    pub id: Option<Uuid>,
+    pub email: String,
+    pub name: String,
 }
 
 //verify the jwt token
