@@ -6,15 +6,6 @@ use dotenvy::dotenv;
 use std::env;
 
 
-//read the secret from the env file 
-
-//tldr of the jwt token : for understanding purpose only
-//convert the user data into a token 
-//and decode the values into the user credential 
-
-
-
-
 //create the jwt token
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Claims{
@@ -45,8 +36,6 @@ let token = match encode(&header, &data, &encoding_key){
 //but that's future me problem 
  token
 }
-
-
 
 //verify the jwt token
 pub fn verify_token(token: &str) -> Result<Claims, String> {
