@@ -1,5 +1,8 @@
 //create the http server
 use actix_web::{HttpServer, App, web};
+mod controllers;
+mod extractors;
+mod middleware;
 
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
