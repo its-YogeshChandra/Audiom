@@ -12,6 +12,7 @@ pub struct Claims{
     pub id: Option<Uuid>,
     pub email: String,
     pub name: String,
+    pub password: String,
 }
 
 //verify the jwt token

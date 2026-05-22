@@ -12,7 +12,8 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
         tracing::info!("Token verified successfully: {:#?}", claims);
 
         //serealize the data we get into getuserstruct
-        let user_data = GetUser::Email(claims.email);
+        let user_data = GetUser::Email(claims.email.clone());
+
         //we move further inside this only 
         let pool = create_pool_connection().await.map_err(|error| actix_web::error::ErrorInternalServerError(error.to_string()))?;
         let db_result = is_user_exist(&pool, user_data).await;
@@ -28,11 +29,13 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
                     let new_user = NewUser {
                         email: claims.email,
                         name: claims.name,
-                        password_hash: claims.password_hash,
+                        password_hash: claims.password,
                     };
                     let db_result = create_user(new_user, &pool).await;
                     match db_result {
-                        Ok(value) => {
+                        Ok(_) => {
+                            //has to send the user created without password hash in the response (future me problem)
+
                             return Ok(HttpResponse::Ok().body("User created successfully"));
                         }
                         Err(error) => {
