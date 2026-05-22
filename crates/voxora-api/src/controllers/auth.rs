@@ -1,10 +1,11 @@
-use actix_web::{post, HttpResponse};
+use actix_web::{post, HttpResponse, web};
 use voxora_core::{verify_token};
 use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
+use sqlx::PgPool;
 
 //signup endpoint 
 #[post("/signup")]
-pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error> {
+pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     //take the token from the frontend(generated through clerk) and verify it 
 
     match verify_token(&jwt_token) {
@@ -15,7 +16,7 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
         let user_data = GetUser::Email(claims.email.clone());
 
         //we move further inside this only 
-        let pool = create_pool_connection().await.map_err(|error| actix_web::error::ErrorInternalServerError(error.to_string()))?;
+        let pool = pgpool.as_ref();
         let db_result = is_user_exist(&pool, user_data).await;
 
         match db_result {
