@@ -1,5 +1,5 @@
 use actix_web::{post, HttpResponse};
-use voxora_core::{jwt, verify_token};
+use voxora_core::{verify_token};
 use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
 
 //signup endpoint 
@@ -65,7 +65,7 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
 //login endpoint 
 #[post("/login")]
 pub async fn login(jwt_token: String) -> Result<HttpResponse, actix_web::Error> {
-    // 1. Verify the Clerk JWT
+    // 1 Verify the clerk jwt
     let claims = verify_token(&jwt_token)
         .map_err(|e| {
             tracing::error!("Failed to verify token: {}", e);

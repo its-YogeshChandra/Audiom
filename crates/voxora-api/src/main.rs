@@ -4,6 +4,8 @@ mod controllers;
 mod extractors;
 mod middleware;
 
+use controllers::{signup, login};
+
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
     println!("voxora-api is starting on port 8080");
@@ -11,7 +13,8 @@ pub async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         //expects the factory to return an application instance 
         App::new()
-            .route("/", web::get().to(|| async { "voxora-api is running" }))
+            .service(signup)
+            .service(login)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
