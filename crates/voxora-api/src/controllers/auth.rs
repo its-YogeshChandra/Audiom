@@ -1,5 +1,5 @@
 use actix_web::{post, HttpResponse};
-use voxora_core::verify_token;
+use voxora_core::{jwt, verify_token};
 use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
 
 //signup endpoint 
@@ -64,6 +64,29 @@ pub async fn signup(jwt_token: String) -> Result<HttpResponse, actix_web::Error>
 
 //login endpoint 
 #[post("/login")]
-pub async fn login() -> Result<HttpResponse, actix_web::Error> {
-    Ok(HttpResponse::Ok().body("login"))
+pub async fn login(jwt_token: String) -> Result<HttpResponse, actix_web::Error> {
+    // 1. Verify the Clerk JWT
+    let claims = verify_token(&jwt_token)
+        .map_err(|e| {
+            tracing::error!("Failed to verify token: {}", e);
+            actix_web::error::ErrorUnauthorized("Invalid or expired token")
+        })?;
+
+    tracing::info!("Token verified successfully: {:#?}", claims);
+
+    // 2. Connect to DB
+    let pool = create_pool_connection().await
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    // 3. Look up the user — they must already exist (signup creates them)
+    let user_data = GetUser::Email(claims.email.clone());
+    let user = get_user_data(&pool, user_data).await
+        .map_err(|e| {
+            tracing::error!("Failed to fetch user: {}", e);
+            actix_web::error::ErrorNotFound("User not found. Please sign up first.")
+        })?;
+
+    // 4. Return the user data
+    tracing::info!("User logged in successfully: {:#?}", user);
+    Ok(HttpResponse::Ok().body(format!("Welcome back, {}", user.name)))
 }
