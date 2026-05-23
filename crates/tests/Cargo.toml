@@ -6,3 +6,6 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
+reqwest = {version = "0.13.3", features = ["json"]}
+serde = {workspace = true, features = ["derive"]}
+tokio = {workspace = true, features = ["full"]}
