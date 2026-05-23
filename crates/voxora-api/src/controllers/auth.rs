@@ -63,7 +63,6 @@ pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<Http
 
 }
 
-
 //login endpoint 
 #[post("/login")]
 pub async fn login(jwt_token: String, pgpool : web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {

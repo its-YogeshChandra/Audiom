@@ -8,8 +8,6 @@ use voxora_db::create_pool_connection;
 use controllers::{signup, login};
 use middleware::jwt_middleware;
 
-
-
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
     let connections = match create_pool_connection().await {
