@@ -3,6 +3,7 @@ use actix_web::{http};
 
 
 pub async fn cors_middleware() -> Cors{
+    //has to add the error handling mechanism here (future me problem)
     Cors::default()
     .allowed_origin("http://localhost:3000")
     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
