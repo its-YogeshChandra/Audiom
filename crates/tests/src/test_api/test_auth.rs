@@ -2,6 +2,7 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
 use jsonwebtoken;
+use tracing;
 
 #[derive(Serialize, Deserialize)]
 pub struct UserData {

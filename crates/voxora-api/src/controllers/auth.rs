@@ -4,6 +4,7 @@ use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_
 use sqlx::PgPool;
 
 //signup endpoint 
+//will take the decrypted user data from the auth middleware ( future me problem)
 #[post("/signup")]
 pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     //take the token from the frontend(generated through clerk) and verify it 
