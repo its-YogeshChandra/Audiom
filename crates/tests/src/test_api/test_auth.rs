@@ -27,7 +27,8 @@ pub async fn test_signup(){
 
     let client = reqwest::Client::new();
     let response = client.post("http://localhost:8000/signup")
-        .json(&user_data)
+    //signup function take 1 argument jwt token 
+        .json(&token)
         .send()
         .await
         .unwrap();
@@ -46,6 +47,10 @@ pub async fn test_login(){
         email: "[EMAIL_ADDRESS]".to_string(),
         avatar_url: "https://example.com/avatar.jpg".to_string(),
     };
+
+    //use jwt to get the token 
+    let token = jsonwebtoken::encode(&Default::default(), &user_data, &jsonwebtoken::EncodingKey::from_secret("secret".as_bytes())).unwrap();
+    tracing::info!("Token: {:#?}", token);
 
     let client = reqwest::Client::new();
     let response = client.post("http://localhost:8000/login")

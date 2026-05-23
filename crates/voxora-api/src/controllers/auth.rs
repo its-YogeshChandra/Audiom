@@ -66,7 +66,7 @@ pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<Http
 
 //login endpoint 
 #[post("/login")]
-pub async fn login(jwt_token: String) -> Result<HttpResponse, actix_web::Error> {
+pub async fn login(jwt_token: String, pgpool : web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     // 1 Verify the clerk jwt
     let claims = verify_token(&jwt_token)
         .map_err(|e| {
@@ -77,10 +77,7 @@ pub async fn login(jwt_token: String) -> Result<HttpResponse, actix_web::Error> 
     tracing::info!("Token verified successfully: {:#?}", claims);
 
     // 2. Connect to DB
-    let pool = create_pool_connection().await
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
-    // 3. Look up the user — they must already exist (signup creates them)
+    let pool = pgpool.as_ref();
     let user_data = GetUser::Email(claims.email.clone());
     let user = get_user_data(&pool, user_data).await
         .map_err(|e| {
