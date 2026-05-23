@@ -13,6 +13,7 @@ pub struct Claims{
     pub email: String,
     pub name: String,
     pub password: String,
+    pub exp: usize,  // expiration timestamp (required by JWT spec)
 }
 
 //verify the jwt token
@@ -25,10 +26,7 @@ pub fn verify_token(token: &str) -> Result<Claims, String> {
     //decode the given data 
     let decoded_result = match decode::<Claims>(token, &decoding_key, &Validation::new(Algorithm::HS256)){
         Ok(token) => token,
-        Err(error) => match error.kind() {
-            ErrorKind::InvalidToken => panic!("Invalid token"),
-            _ => panic!("Invalid token")
-        }
+        Err(error) => return Err(format!("Token verification failed: {}", error))
     };
 
     Ok(decoded_result.claims)

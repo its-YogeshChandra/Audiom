@@ -4434,11 +4434,12 @@ dependencies = [
 name = "tests"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "jsonwebtoken",
  "reqwest",
  "serde",
  "tokio",
- "tracing",
+ "uuid",
 ]
 
 [[package]]

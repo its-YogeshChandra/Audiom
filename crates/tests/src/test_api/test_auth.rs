@@ -2,64 +2,94 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
 use jsonwebtoken;
-use tracing;
+use uuid::Uuid;
+use dotenvy::dotenv;
+use std::env;
+use std::time::{SystemTime, UNIX_EPOCH};
 
+// Must match Claims struct in voxora-core/src/auth/jwt.rs exactly
 #[derive(Serialize, Deserialize)]
-pub struct UserData {
-    name: String, 
-    email: String, 
-    avatar_url: String,
+pub struct TestClaims {
+    id: Option<Uuid>,
+    email: String,
+    name: String,
+    password: String,
+    exp: usize,
 }
 
 pub async fn test_signup(){
-    //take the token from the clerk (local for now) and test the signup endpoint of api
+    dotenv().ok();
+    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET not found in .env");
 
-    //create the jwt token out of the userdata 
-    let user_data = UserData {
-        name: "John Doe".to_string(),
-        email: "[EMAIL_ADDRESS]".to_string(),
-        avatar_url: "https://example.com/avatar.jpg".to_string(),
+    // signup: id is None because the DB generates it
+    let exp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize + 3600; // 1 hour
+    let claims = TestClaims {
+        id: None,
+        name: "marco".to_string(),
+        email: "marco@example.com".to_string(),
+        password: "testpassword123".to_string(),
+        exp,
     };
 
-    //use jwt to get the token 
-    let token = jsonwebtoken::encode(&Default::default(), &user_data, &jsonwebtoken::EncodingKey::from_secret("secret".as_bytes())).unwrap();
-    tracing::info!("Token: {:#?}", token);
+    let token = jsonwebtoken::encode(
+        &Default::default(),
+        &claims,
+        &jsonwebtoken::EncodingKey::from_secret(jwt_secret.as_bytes()),
+    ).unwrap();
 
     let client = reqwest::Client::new();
-    let response = client.post("http://localhost:8000/signup")
-    //signup function take 1 argument jwt token 
-        .json(&token)
+    let response = client.post("http://localhost:8080/signup")
+        .body(token)
         .send()
-        .await
-        .unwrap();
-    
-    println!("{:#?}", response);
-    
+        .await;
+
+    match response {
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            println!("[SIGNUP] status: {} | body: {}", status, body);
+        }
+        Err(error) => {
+            println!("[SIGNUP] error: {:#?}", error);
+        }
+    }
 }
 
 
 pub async fn test_login(){
-    //take the token from the clerk (local for now) and test the login endpoint of api
+    dotenv().ok();
+    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET not found in .env");
 
-    //create the jwt token out of the userdata 
-    let user_data = UserData {
-        name: "John Doe".to_string(),
-        email: "[EMAIL_ADDRESS]".to_string(),
-        avatar_url: "https://example.com/avatar.jpg".to_string(),
+    // login: same user, id still None (server looks up by email)
+    let exp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize + 3600; // 1 hour
+    let claims = TestClaims {
+        id: None,
+        name: "marco".to_string(),
+        email: "marco@example.com".to_string(),
+        password: "testpassword123".to_string(),
+        exp,
     };
 
-    //use jwt to get the token 
-    let token = jsonwebtoken::encode(&Default::default(), &user_data, &jsonwebtoken::EncodingKey::from_secret("secret".as_bytes())).unwrap();
-    tracing::info!("Token: {:#?}", token);
+    let token = jsonwebtoken::encode(
+        &Default::default(),
+        &claims,
+        &jsonwebtoken::EncodingKey::from_secret(jwt_secret.as_bytes()),
+    ).unwrap();
 
     let client = reqwest::Client::new();
-    let response = client.post("http://localhost:8000/login")
-        .json(&user_data)
+    let response = client.post("http://localhost:8080/login")
+        .body(token)
         .send()
-        .await
-        .unwrap();
-    
-    println!("{:#?}", response);
-    
+        .await;
+
+    match response {
+        Ok(resp) => {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            println!("[LOGIN] status: {} | body: {}", status, body);
+        }
+        Err(error) => {
+            println!("[LOGIN] error: {:#?}", error);
+        }
+    }
 }
-         
