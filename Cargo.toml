@@ -7,7 +7,7 @@ members = [
     "crates/voxora-ai",
     "crates/voxora-api",
     "crates/voxora-signal",
-    "crates/voxora-worker",
+    "crates/voxora-worker", "crates/tests",
 ]
 
 [workspace.package]

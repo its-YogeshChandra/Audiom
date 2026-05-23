@@ -3,8 +3,10 @@ use actix_web::{HttpServer, App, web};
 mod controllers;
 mod extractors;
 mod middleware;
+
 use voxora_db::create_pool_connection;
 use controllers::{signup, login};
+use middleware::jwt_middleware;
 
 
 
