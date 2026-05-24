@@ -134,3 +134,13 @@ async fn update_workspace (pool: PgPool, workspace_id:Uuid, update_workspace : U
     Ok(())
 
 }
+
+async fn delete_workspace(pool: PgPool, workspace_id: Uuid) -> Result<(), sqlx::Error> {
+    //same the user must be the owner( should be handle at endpoint level)
+    let query = "DELETE FROM workspaces WHERE id = $1";
+    sqlx::query(query)
+        .bind(workspace_id)
+        .execute(&pool)
+        .await?;
+    Ok(())
+}
