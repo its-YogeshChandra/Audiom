@@ -46,4 +46,82 @@ async fn create_workspace (pool: PgPool, new_workspace : NewWorkspace) -> Result
     }
 }
 
+async fn get_workspace_owner(pool: PgPool, workspace_id: Uuid) -> Result<Workspace, sqlx::Error> {
+    let workspace = sqlx::query_as!(Workspace, "SELECT * FROM workspaces WHERE id = $1", workspace_id)
+        .fetch_optional(&pool)
+        .await?;
 
+    match workspace {
+        Some(value) => Ok(value),
+        None => Err(sqlx::Error::RowNotFound),
+    }
+}
+
+async fn get_workspace_member(pool: PgPool, workspace_id: Uuid) -> Result<Workspace, sqlx::Error> {
+    let workspace = sqlx::query_as!(Workspace, "SELECT * FROM workspaces WHERE id = $1", workspace_id)
+        .fetch_optional(&pool)
+        .await?;
+
+    match workspace {
+        //filter the values in here 
+        Some(value) => Ok(value),
+        None => Err(sqlx::Error::RowNotFound),
+    }
+}
+
+
+async fn is_workspace_owner(pool: PgPool, workspace_id :Uuid, user_id : Uuid,  ) ->  bool {
+    //check first the user is the owner 
+    let workspace = get_workspace_owner(pool, workspace_id).await;
+    
+    match workspace {
+        Ok(value)=> {
+            if value.owner_id != user_id {
+                return false
+            }
+            return true
+        }
+        Err(_) => {
+            //do error handling future me problem 
+            return false
+        }
+    }
+
+}
+
+
+pub struct UpdateWorkspace{
+ pub name: Option<String>,
+ pub slug: Option<String>,
+ pub owner_id: Option<Uuid>,
+ pub plan: Option<String>,    
+}
+
+//there is two distinction first either upate one value at a time 
+//either multiple values can be updated at a time 
+
+async fn update_workspace (pool: PgPool, workspace_id:Uuid, update_workspace : UpdateWorkspace) -> Result<(), sqlx::Error> {
+  let query = r#"
+        UPDATE workspaces
+        SET 
+            name = COALESCE($1, name),
+            slug = COALESCE($2, slug),
+            owner_id = COALESCE($3, owner_id),
+            plan = COALESCE($4, plan),
+            updated_at = NOW()
+        WHERE id = $5
+    "#;
+
+    sqlx::query(query)
+        // SQLx binds `Option<T>` directly as `T` or `NULL`
+        .bind(update_workspace.name) 
+        .bind(update_workspace.slug)
+        .bind(update_workspace.owner_id)
+        .bind(update_workspace.plan)
+        .bind(workspace_id)
+        .execute(&pool)
+        .await?;
+
+    Ok(())
+
+}
