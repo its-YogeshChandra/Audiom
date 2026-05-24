@@ -144,3 +144,11 @@ async fn delete_workspace(pool: PgPool, workspace_id: Uuid) -> Result<(), sqlx::
         .await?;
     Ok(())
 }
+
+
+async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , members : Uuid){
+    //same the user must be  the owner of the workspace to do that 
+    //add single member at a time (will add multiple members adding)
+    
+
+}
