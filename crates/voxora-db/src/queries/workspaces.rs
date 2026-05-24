@@ -12,10 +12,19 @@ pub struct Workspace {
 
 }
 
+pub enum WorkspaceRole {
+    Owner(String),
+    Admin(String),
+    Editor(String), 
+    Viewer(String), 
+    Guest(String)
+}
+
+
 pub struct WorkspaceMembers {
     pub workspace_id : Uuid, 
     pub user_id      : Uuid, 
-    pub role         : String,
+    pub role         : WorkspaceRole, 
     pub joined_at    : time::OffsetDateTime
 }
 
