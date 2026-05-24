@@ -146,13 +146,17 @@ async fn delete_workspace(pool: PgPool, workspace_id: Uuid) -> Result<(), sqlx::
 }
 
 
-async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , members : Uuid){
+async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , user_credentials: String){
     //same the user must be  the owner of the workspace to do that 
     //add single member at a time (will add multiple members adding)
+    
+    let db_result = sqlx::query!(WorkspaceMembers =>"
+    INSERT INTO workspace_members
+    (
+    workspace_id,
+    " ,
 
-    //questions (how we add the member)
-    // on the basis of the name ( can be done (what if two people have same name ))
-    //on the basis of the username ( this is better ( username can be set it to unique while creating user ))
-    //create a whole new field for user name : member id ( any time to add memeber that id will be shared)
+)
 
+    
 }
