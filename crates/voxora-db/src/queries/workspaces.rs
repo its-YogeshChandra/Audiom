@@ -150,6 +150,7 @@ async fn delete_workspace(pool: PgPool, workspace_id: Uuid) -> Result<(), sqlx::
 async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , user_id: Uuid) -> Result<WorkspaceMembers, sqlx::Error> {
     //same the user must be  the owner of the workspace to do that 
     //add single member at a time (will add multiple members adding) 
+    //right now this is in the add member category( the invite and then add feature is ( future me problem))
     let db_result = sqlx::query_as!(WorkspaceMembers, r#"
     INSERT INTO workspace_members
     (workspace_id,
@@ -167,6 +168,33 @@ async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole ,
 
    match db_result {
     Some(workspace_member) => Ok(workspace_member),
+    //(future me problem)
     None => Err(sqlx::Error::RowNotFound)
    }
+}
+
+
+async fn remove_member(pool: PgPool, workspace_id :Uuid, user_id: Uuid) -> Result<(), sqlx::Error> {
+    //user must be owner to do that (handle at endpoint level)
+    //will add functionality of removing other users (future me problem) 
+
+    let query = "DELETE FROM workspace_members WHERE workspace_id = $1 AND user_id = $2";
+    sqlx::query(query)
+    .bind(workspace_id)
+    .bind(user_id)
+    .execute(&pool)
+    .await?;
+    Ok(())
+}
+
+async fn change_member_role(pool: PgPool, workspace_id: Uuid, user_id: Uuid, role: WorkspaceRole) -> Result<(), sqlx::Error> {
+    //(future me problem) (the new workspace role shouldn't match the current workspace role this will cause unneccessary db updates)
+    let query = "UPDATE workspace_members SET role = $1 WHERE workspace_id = $2 AND user_id = $3";
+    sqlx::query(query)
+    .bind(role as WorkspaceRole)
+    .bind(workspace_id)
+    .bind(user_id)
+    .execute(&pool)
+    .await?;
+    Ok(())
 }
