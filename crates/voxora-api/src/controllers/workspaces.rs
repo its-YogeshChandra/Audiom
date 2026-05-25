@@ -8,7 +8,7 @@ use voxora_db::{
     create_workspace, get_workspace_by_slug, list_user_workspaces,
     update_workspace, delete_workspace, is_workspace_owner,
     get_member_role, list_workspace_members, add_member, remove_member,
-    change_member_role, get_user_data, get_workspace_by_id,
+    change_member_role, get_user_data, 
     NewWorkspace, UpdateWorkspace, WorkspaceRole, GetUser,
 };
 

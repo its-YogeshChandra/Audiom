@@ -1,5 +1,4 @@
-use jsonwebtoken::{encode,decode, Header, EncodingKey, DecodingKey, Validation, Algorithm};
-use jsonwebtoken::errors::ErrorKind;
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use dotenvy::dotenv;
