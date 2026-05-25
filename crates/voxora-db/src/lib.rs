@@ -5,4 +5,4 @@ mod queries;
 
 pub use pool::create_pool_connection;
 pub use queries::users::*;
-
+pub use queries::workspaces::*;
