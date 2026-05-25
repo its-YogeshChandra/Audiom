@@ -37,6 +37,8 @@ pub async fn test_signup(){
         &jsonwebtoken::EncodingKey::from_secret(jwt_secret.as_bytes()),
     ).unwrap();
 
+    println!("jwt token is : {}", token);
+
     let client = reqwest::Client::new();
     let response = client.post("http://localhost:8080/signup")
         .body(token)
