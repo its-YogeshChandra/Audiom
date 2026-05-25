@@ -10,7 +10,8 @@ pub struct CreateWorkspaceBody {
     pub plan: Option<String>,
 }
 
-
+//create a static variable for the workspace id 
+static mut WORKSPACE_ID: Option<String> = None;
 
 async fn test_create_workspace() -> Result<(),Box<dyn std::error::Error>>{
     
