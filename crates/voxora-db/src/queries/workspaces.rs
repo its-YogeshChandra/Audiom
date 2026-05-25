@@ -11,19 +11,20 @@ pub struct Workspace {
     pub created_at : time::OffsetDateTime
 
 }
-
+#[derive(Debug, Clone, sqlx::Type)]
+#[sqlx(type_name= "TEXT",  rename_all = "lowercase")]
 pub enum WorkspaceRole {
-    Owner(String),
-    Admin(String),
-    Editor(String), 
-    Viewer(String), 
-    Guest(String)
+    Owner,
+    Admin,
+    Editor, 
+    Viewer, 
+    Guest
 }
 
-
+#[derive( Debug, sqlx::FromRow)]
 pub struct WorkspaceMembers {
     pub workspace_id : Uuid, 
-    pub user_id      : Uuid, 
+    pub user_id      : Uuid,
     pub role         : WorkspaceRole, 
     pub joined_at    : time::OffsetDateTime
 }
@@ -146,17 +147,26 @@ async fn delete_workspace(pool: PgPool, workspace_id: Uuid) -> Result<(), sqlx::
 }
 
 
-async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , user_credentials: String){
+async fn add_members (pool : PgPool , workspace_id: Uuid , role: WorkspaceRole , user_id: Uuid) -> Result<WorkspaceMembers, sqlx::Error> {
     //same the user must be  the owner of the workspace to do that 
-    //add single member at a time (will add multiple members adding)
-    
-    let db_result = sqlx::query!(WorkspaceMembers =>"
+    //add single member at a time (will add multiple members adding) 
+    let db_result = sqlx::query_as!(WorkspaceMembers, r#"
     INSERT INTO workspace_members
-    (
-    workspace_id,
-    " ,
+    (workspace_id,
+    user_id,
+    role)
+    VALUES($1, $2, $3)
+    RETURNING workspace_id, user_id, role as "role: WorkspaceRole", joined_at
+    "#
+    , workspace_id,
+    user_id,
+    role as WorkspaceRole
+    )
+    .fetch_optional(&pool)
+    .await?;
 
-)
-
-    
+   match db_result {
+    Some(workspace_member) => Ok(workspace_member),
+    None => Err(sqlx::Error::RowNotFound)
+   }
 }
