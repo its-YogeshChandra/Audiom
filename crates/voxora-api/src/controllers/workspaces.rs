@@ -27,3 +27,18 @@ pub async fn update_workspace(path: web::Path<(Uuid)>) -> impl Responder {
 pub async fn get_workspace_members(path: web::Path<(Uuid)>) -> impl Responder {
     HttpResponse::Ok().body("Workspace members fetched successfully")
 }
+
+#[post("/workspace/{workspace_id}/members")]
+pub async fn add_workspace_members(path: web::Path<(Uuid)>) -> impl Responder {
+    HttpResponse::Ok().body("Workspace members added successfully")
+}
+
+#[delete("/workspace/{workspace_id}/members/{user_id}")]
+pub async fn remove_workspace_members(path: web::Path<(Uuid, Uuid)>) -> impl Responder {
+    HttpResponse::Ok().body("Workspace members removed successfully")
+}
+
+#[put("/workspace/{workspace_id}/members/{user_id}/role")]
+pub async fn change_workspace_members_role(path: web::Path<(Uuid, Uuid)>) -> impl Responder {
+    HttpResponse::Ok().body("Workspace members role changed successfully")
+}
