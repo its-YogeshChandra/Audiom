@@ -1,5 +1,5 @@
 //workspace controller for all the workspace endpoints
-use actix_web::{get, post, put, delete, web, HttpResponse};
+use actix_web::{get, post, put, delete, web, HttpRequest, HttpResponse};
 use serde::Deserialize;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -52,10 +52,28 @@ fn parse_role(role: &str) -> Result<WorkspaceRole, actix_web::Error> {
     }
 }
 
-// ── Helper: extract user_id from JWT token ──
+// ── Helper: extract Bearer token from Authorization header ──
 
-fn extract_user_id(jwt_token: &str) -> Result<Uuid, actix_web::Error> {
-    let claims = verify_token(jwt_token)
+fn extract_bearer_token(req: &HttpRequest) -> Result<String, actix_web::Error> {
+    let auth_header = req
+        .headers()
+        .get("Authorization")
+        .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing Authorization header"))?
+        .to_str()
+        .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid Authorization header"))?;
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(actix_web::error::ErrorUnauthorized("Authorization header must start with 'Bearer '"));
+    }
+
+    Ok(auth_header["Bearer ".len()..].to_string())
+}
+
+// ── Helper: extract user_id from JWT token in Authorization header ──
+
+fn extract_user_id(req: &HttpRequest) -> Result<Uuid, actix_web::Error> {
+    let token = extract_bearer_token(req)?;
+    let claims = verify_token(&token)
         .map_err(|e| actix_web::error::ErrorUnauthorized(format!("Invalid token: {}", e)))?;
 
     claims.id.ok_or_else(|| actix_web::error::ErrorUnauthorized("Token missing user id"))
@@ -95,11 +113,11 @@ async fn require_member(pool: &PgPool, workspace_id: Uuid, user_id: Uuid) -> Res
 /// POST /workspaces — Any authenticated user can create a workspace
 #[post("/workspaces")]
 pub async fn create_workspace_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     body: web::Json<CreateWorkspaceBody>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
 
     let new_ws = NewWorkspace {
@@ -123,10 +141,10 @@ pub async fn create_workspace_endpoint(
 /// GET /workspaces — List all workspaces the authenticated user belongs to
 #[get("/workspaces")]
 pub async fn get_workspaces_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
 
     let workspaces = list_user_workspaces(pool, user_id).await
@@ -138,11 +156,11 @@ pub async fn get_workspaces_endpoint(
 /// GET /workspaces/{slug} — Get workspace by slug (members only)
 #[get("/workspaces/{slug}")]
 pub async fn get_workspace_by_slug_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<String>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let slug = path.into_inner();
 
@@ -158,12 +176,12 @@ pub async fn get_workspace_by_slug_endpoint(
 /// PUT /workspaces/{workspace_id} — Update workspace (owner/admin only)
 #[put("/workspaces/{workspace_id}")]
 pub async fn update_workspace_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<Uuid>,
     body: web::Json<UpdateWorkspaceBody>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let workspace_id = path.into_inner();
 
@@ -186,11 +204,11 @@ pub async fn update_workspace_endpoint(
 /// DELETE /workspaces/{workspace_id} — Delete workspace (owner only)
 #[delete("/workspaces/{workspace_id}")]
 pub async fn delete_workspace_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let workspace_id = path.into_inner();
 
@@ -206,11 +224,11 @@ pub async fn delete_workspace_endpoint(
 /// GET /workspaces/{workspace_id}/members — List members (members only)
 #[get("/workspaces/{workspace_id}/members")]
 pub async fn get_workspace_members_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<Uuid>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let workspace_id = path.into_inner();
 
@@ -226,12 +244,12 @@ pub async fn get_workspace_members_endpoint(
 /// POST /workspaces/{workspace_id}/members — Add member by email (owner/admin only)
 #[post("/workspaces/{workspace_id}/members")]
 pub async fn add_workspace_member_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<Uuid>,
     body: web::Json<AddMemberBody>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let workspace_id = path.into_inner();
 
@@ -258,11 +276,11 @@ pub async fn add_workspace_member_endpoint(
 /// DELETE /workspaces/{workspace_id}/members/{target_user_id} — Remove member (owner/admin only)
 #[delete("/workspaces/{workspace_id}/members/{target_user_id}")]
 pub async fn remove_workspace_member_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let (workspace_id, target_user_id) = path.into_inner();
 
@@ -291,12 +309,12 @@ pub async fn remove_workspace_member_endpoint(
 /// PUT /workspaces/{workspace_id}/members/{target_user_id}/role — Change role (owner/admin only)
 #[put("/workspaces/{workspace_id}/members/{target_user_id}/role")]
 pub async fn change_workspace_member_role_endpoint(
-    jwt_token: String,
+    req: HttpRequest,
     pgpool: web::Data<PgPool>,
     path: web::Path<(Uuid, Uuid)>,
     body: web::Json<ChangeRoleBody>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let user_id = extract_user_id(&jwt_token)?;
+    let user_id = extract_user_id(&req)?;
     let pool = pgpool.as_ref();
     let (workspace_id, target_user_id) = path.into_inner();
 

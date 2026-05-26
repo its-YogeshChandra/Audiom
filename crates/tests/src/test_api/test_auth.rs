@@ -17,31 +17,36 @@ pub struct TestClaims {
     exp: usize,
 }
 
-pub async fn test_signup(){
+/// Generate a JWT token for testing
+pub fn make_token(id: Option<Uuid>, email: &str, name: &str, password: &str) -> String {
     dotenv().ok();
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET not found in .env");
 
-    // signup: id is None because the DB generates it
-    let exp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize + 3600; // 1 hour
+    let exp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize + 3600;
     let claims = TestClaims {
-        id: None,
-        name: "marco".to_string(),
-        email: "marco@example.com".to_string(),
-        password: "testpassword123".to_string(),
+        id,
+        name: name.to_string(),
+        email: email.to_string(),
+        password: password.to_string(),
         exp,
     };
 
-    let token = jsonwebtoken::encode(
+    jsonwebtoken::encode(
         &Default::default(),
         &claims,
         &jsonwebtoken::EncodingKey::from_secret(jwt_secret.as_bytes()),
-    ).unwrap();
+    ).unwrap()
+}
 
-    println!("jwt token is : {}", token);
+pub async fn test_signup(){
+    dotenv().ok();
+
+    let token = make_token(None, "marco@example.com", "marco", "testpassword123");
+    println!("[SIGNUP] token: {}", token);
 
     let client = reqwest::Client::new();
     let response = client.post("http://localhost:8080/signup")
-        .body(token)
+        .header("Authorization", format!("Bearer {}", token))
         .send()
         .await;
 
@@ -60,27 +65,12 @@ pub async fn test_signup(){
 
 pub async fn test_login(){
     dotenv().ok();
-    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET not found in .env");
 
-    // login: same user, id still None (server looks up by email)
-    let exp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize + 3600; // 1 hour
-    let claims = TestClaims {
-        id: None,
-        name: "marco".to_string(),
-        email: "marco@example.com".to_string(),
-        password: "testpassword123".to_string(),
-        exp,
-    };
-
-    let token = jsonwebtoken::encode(
-        &Default::default(),
-        &claims,
-        &jsonwebtoken::EncodingKey::from_secret(jwt_secret.as_bytes()),
-    ).unwrap();
+    let token = make_token(None, "marco@example.com", "marco", "testpassword123");
 
     let client = reqwest::Client::new();
     let response = client.post("http://localhost:8080/login")
-        .body(token)
+        .header("Authorization", format!("Bearer {}", token))
         .send()
         .await;
 

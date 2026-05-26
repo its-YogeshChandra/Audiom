@@ -1,13 +1,30 @@
-use actix_web::{post, HttpResponse, web};
+use actix_web::{post, HttpRequest, HttpResponse, web};
 use voxora_core::{verify_token};
 use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
 use sqlx::PgPool;
 
+/// Extract Bearer token from the Authorization header
+fn extract_bearer_token(req: &HttpRequest) -> Result<String, actix_web::Error> {
+    let auth_header = req
+        .headers()
+        .get("Authorization")
+        .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing Authorization header"))?
+        .to_str()
+        .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid Authorization header"))?;
+
+    if !auth_header.starts_with("Bearer ") {
+        return Err(actix_web::error::ErrorUnauthorized("Authorization header must start with 'Bearer '"));
+    }
+
+    Ok(auth_header["Bearer ".len()..].to_string())
+}
+
 //signup endpoint 
 //will take the decrypted user data from the auth middleware ( future me problem)
 #[post("/signup")]
-pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn signup(req: HttpRequest, pgpool: web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     //take the token from the frontend(generated through clerk) and verify it 
+    let jwt_token = extract_bearer_token(&req)?;
 
     match verify_token(&jwt_token) {
     Ok(claims) => {
@@ -35,10 +52,12 @@ pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<Http
                     };
                     let db_result = create_user(new_user, &pool).await;
                     match db_result {
-                        Ok(_) => {
-                            //has to send the user created without password hash in the response (future me problem)
-
-                            return Ok(HttpResponse::Ok().body("User created successfully"));
+                        Ok(user) => {
+                            return Ok(HttpResponse::Created().json(serde_json::json!({
+                                "id": user.id,
+                                "email": user.email,
+                                "name": user.name,
+                            })));
                         }
                         Err(error) => {
                             return Err(actix_web::error::ErrorInternalServerError(error.to_string()));
@@ -65,8 +84,9 @@ pub async fn signup(jwt_token: String, pgpool: web::Data<PgPool>) -> Result<Http
 
 //login endpoint 
 #[post("/login")]
-pub async fn login(jwt_token: String, pgpool : web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn login(req: HttpRequest, pgpool : web::Data<PgPool>) -> Result<HttpResponse, actix_web::Error> {
     // 1 Verify the clerk jwt
+    let jwt_token = extract_bearer_token(&req)?;
     let claims = verify_token(&jwt_token)
         .map_err(|e| {
             tracing::error!("Failed to verify token: {}", e);
