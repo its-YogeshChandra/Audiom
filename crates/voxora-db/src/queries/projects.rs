@@ -1,7 +1,10 @@
 use uuid::Uuid;
 use sqlx::PgPool;
+use serde::{Deserialize, Serialize};
 //check on this package 
 use time::UtcDateTime;
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Project {
     pub id:           Uuid,
     pub workspace_id: Uuid,
@@ -13,14 +16,17 @@ pub struct Project {
 }
 
 
+
+#[derive(Debug, Deserialize)]
 pub struct NewProject {
-    pub workspace_id: Uuid,
     pub name:         String,
     pub description:  Option<String>,
     pub artwork_url:  Option<String>,
     pub rss_slug:     Option<String>,
 }
 
+
+#[derive(Debug, Deserialize)]
 pub struct UpdateProject {
     pub name:         Option<String>,
     pub description:  Option<String>,
@@ -44,6 +50,20 @@ pub async fn create_project(pool: &PgPool, workspace_id: Uuid, new_project: NewP
         new_project.rss_slug
     )
     .fetch_one(pool)
+    .await
+}
+
+pub async fn get_project_by_workspace_id(pool: &PgPool, workspace_id: Uuid) -> Result<Vec<Project>, sqlx::Error> {
+    sqlx::query_as!(
+        Project,
+        r#"
+        SELECT id, workspace_id, name, description, artwork_url, rss_slug, created_at
+        FROM projects
+        WHERE workspace_id = $1
+        "#,
+        workspace_id
+    )
+    .fetch_all(pool)
     .await
 }
 
