@@ -7,3 +7,4 @@ pub use pool::create_pool_connection;
 pub use queries::users::*;
 pub use queries::workspaces::*;
 pub use queries::projects::*;
+pub use queries::rooms::*;

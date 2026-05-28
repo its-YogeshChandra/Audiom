@@ -16,6 +16,7 @@ pub struct Room {
     pub ended_at: Option<OffsetDateTime>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NewRoom {
     pub project_id: Uuid,
     pub name: String,
@@ -35,7 +36,7 @@ pub struct UpdateRoom{
 //has to know about fetch one , fetch optional , fetch all, execute (in sqlx::query as!)
 
 
-async fn create_room(pool: &PgPool, new_room: NewRoom) -> Result<Room, sqlx::Error> {
+pub async fn create_room(pool: &PgPool, new_room: NewRoom) -> Result<Room, sqlx::Error> {
     let room = sqlx::query_as!(
         Room,
         r#"
@@ -54,7 +55,7 @@ async fn create_room(pool: &PgPool, new_room: NewRoom) -> Result<Room, sqlx::Err
     room
 }
 
-async fn get_room_by_id(pool: &PgPool, room_id: Uuid) -> Result<Room, sqlx::Error> {
+pub async fn get_room_by_id(pool: &PgPool, room_id: Uuid) -> Result<Room, sqlx::Error> {
     let room = sqlx::query_as!(Room, 
         r#"
         SELECT * FROM rooms WHERE id = $1
@@ -68,7 +69,7 @@ async fn get_room_by_id(pool: &PgPool, room_id: Uuid) -> Result<Room, sqlx::Erro
     }
 }
 
-async fn get_rooms_by_project_id(pool : &PgPool , project_id : Uuid) -> Result<Vec<Room>, sqlx::Error>{
+pub async fn get_rooms_by_project_id(pool : &PgPool , project_id : Uuid) -> Result<Vec<Room>, sqlx::Error>{
     
     let rooms = sqlx::query_as!(
         Room,
@@ -82,7 +83,7 @@ async fn get_rooms_by_project_id(pool : &PgPool , project_id : Uuid) -> Result<V
     Ok(rooms)
 }
 
-async fn update_room(pool : &PgPool , room_id : Uuid , update_room : UpdateRoom) -> Result<Room, sqlx::Error>{
+pub async fn update_room(pool : &PgPool , room_id : Uuid , update_room : UpdateRoom) -> Result<Room, sqlx::Error>{
     let room = sqlx::query_as!(
         Room,
         r#"
@@ -105,7 +106,7 @@ async fn update_room(pool : &PgPool , room_id : Uuid , update_room : UpdateRoom)
     Ok(room)
 }
 
-async fn update_room_status(pool : &PgPool , room_id : Uuid , status : String) -> Result<Room , sqlx::Error>{
+pub async fn update_room_status(pool : &PgPool , room_id : Uuid , status : String) -> Result<Room , sqlx::Error>{
     let room = sqlx::query_as!(
         Room,
         r#"
@@ -122,7 +123,7 @@ async fn update_room_status(pool : &PgPool , room_id : Uuid , status : String) -
     Ok(room)
 }
 
-async fn delete_room(pool : &PgPool , room_id : Uuid) -> Result<u64 , sqlx::Error>{
+pub async fn delete_room(pool : &PgPool , room_id : Uuid) -> Result<u64 , sqlx::Error>{
     let result = sqlx::query!(
         r#"
         DELETE FROM rooms WHERE id = $1
@@ -131,5 +132,6 @@ async fn delete_room(pool : &PgPool , room_id : Uuid) -> Result<u64 , sqlx::Erro
     )
     .execute(pool)
     .await?;
+
     Ok(result.rows_affected())
 }
