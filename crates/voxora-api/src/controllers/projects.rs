@@ -1,5 +1,5 @@
 //api for the projects
-use actix_web::{get, post, put, web, Responder, HttpResponse};
+use actix_web::{get, post, put,delete, web, HttpResponse};
 use voxora_db::{create_project, delete_project_by_id, update_project_by_id, NewProject, UpdateProject, get_project_by_workspace_id};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -27,3 +27,11 @@ pub async fn update_project_by_id_controller(pool: web::Data<PgPool>, project_id
     let project = update_project_by_id(&pool,project_id, update_project.into_inner()).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     Ok(HttpResponse::Ok().json(project))
 }
+
+#[delete("/project/{project_id}")]
+pub async fn delete_project_by_id_controller(pool: web::Data<PgPool>, project_id: String) -> Result<HttpResponse, actix_web::Error> {
+    let project_id = Uuid::parse_str(&project_id).map_err(|e| actix_web::error::ErrorBadRequest(e.to_string()))?;
+    let project = delete_project_by_id(&pool,project_id).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    Ok(HttpResponse::Ok().json(project))
+}
+
