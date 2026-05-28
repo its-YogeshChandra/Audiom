@@ -53,10 +53,16 @@ async fn create_room(pool: &PgPool, new_room: NewRoom) -> Result<Room, sqlx::Err
 
 async fn get_room_by_id(pool: &PgPool, room_id: Uuid) -> Result<Room, sqlx::Error> {
     let room = sqlx::query_as!(Room, 
-        "SELECT * FROM rooms WHERE id = $1",
+        r#"
+        SELECT * FROM rooms WHERE id = $1
+        "#,
         room_id
     ).fetch_optional(pool).await?;
-    Ok(room)
+
+    match room {
+        Some(room) => Ok(room),
+        None => Err(sqlx::Error::RowNotFound),
+    }
 }
 
 async fn get_rooms_by_project_id(){}
