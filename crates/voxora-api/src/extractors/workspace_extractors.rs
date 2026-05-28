@@ -5,7 +5,7 @@ use voxora_db::{
     get_member_role, is_workspace_owner,
     WorkspaceRole,
 };
-use actix_web::{web, error, HttpRequest};
+use actix_web::{HttpRequest};
 
 
 pub fn extract_bearer_token(req: &HttpRequest) -> Result<String, actix_web::Error> {
@@ -55,7 +55,6 @@ pub async fn require_owner(pool: &PgPool, workspace_id: Uuid, user_id: Uuid) -> 
 }
 
 // ── Helper: check if user is a member ──
-
 pub async fn require_member(pool: &PgPool, workspace_id: Uuid, user_id: Uuid) -> Result<(), actix_web::Error> {
     get_member_role(pool, workspace_id, user_id).await
         .map_err(|_| actix_web::error::ErrorForbidden("You are not a member of this workspace"))?;

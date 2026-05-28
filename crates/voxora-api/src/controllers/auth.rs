@@ -1,6 +1,6 @@
 use actix_web::{post, HttpRequest, HttpResponse, web};
 use voxora_core::{verify_token};
-use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
+use voxora_db::{get_user_data, GetUser, create_user, is_user_exist, NewUser};
 use sqlx::PgPool;
 use crate::extractors::extract_bearer_token;
 
