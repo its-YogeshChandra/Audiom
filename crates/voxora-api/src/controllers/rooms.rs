@@ -66,16 +66,36 @@ pub async fn update_room_endpoint(
     req : HttpRequest,
     pool : web::Data<PgPool>,
     path : web::Path<(Uuid ,)>,
-    payload : web::Json<UpdateRoom>
+    payload : web::Json<UpdateRoom>,
+    room_id : String
 ) -> Result<HttpResponse , actix_web::Error>{
-   //have to implement auth and rbac functions  
-    let room = update_room(pool.as_ref(), path.into_inner().0, payload.into_inner()).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+   //have to implement auth and rbac functions 
+   let user_id = extract_user_id(&req)?;
+   let workspace_id = path.into_inner().0;
+   
+   require_owner_or_admin(pool.as_ref(), workspace_id, user_id).await?;
+
+   let room_id = room_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+   
+   let room = update_room(pool.as_ref(), room_id, payload.into_inner()).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     Ok(HttpResponse::Ok().json(room))
 }
 
 #[delete("/workspace/{id}/room")]
-pub async fn delete_room_endpoint(pool : web::Data<PgPool> , path : web::Path<(Uuid ,)>) -> Result<HttpResponse , actix_web::Error>{
+pub async fn delete_room_endpoint(
+    req : HttpRequest,
+    pool : web::Data<PgPool> , 
+    path : web::Path<(Uuid ,)>,
+    room_id : String
+) -> Result<HttpResponse , actix_web::Error>{
    //have to implement auth and rbac functions  
-    let room = delete_room(pool.as_ref(), path.into_inner().0).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    let user_id = extract_user_id(&req)?;
+    let workspace_id = path.into_inner().0;
+   
+    require_owner_or_admin(pool.as_ref(), workspace_id, user_id).await?;
+
+    let room_id = room_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    
+    let room = delete_room(pool.as_ref(), room_id).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     Ok(HttpResponse::Ok().json(room))
 }
