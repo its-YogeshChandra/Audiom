@@ -2,22 +2,7 @@ use actix_web::{post, HttpRequest, HttpResponse, web};
 use voxora_core::{verify_token};
 use voxora_db::{get_user_data, create_pool_connection, GetUser, create_user, is_user_exist, NewUser};
 use sqlx::PgPool;
-
-/// Extract Bearer token from the Authorization header
-fn extract_bearer_token(req: &HttpRequest) -> Result<String, actix_web::Error> {
-    let auth_header = req
-        .headers()
-        .get("Authorization")
-        .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing Authorization header"))?
-        .to_str()
-        .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid Authorization header"))?;
-
-    if !auth_header.starts_with("Bearer ") {
-        return Err(actix_web::error::ErrorUnauthorized("Authorization header must start with 'Bearer '"));
-    }
-
-    Ok(auth_header["Bearer ".len()..].to_string())
-}
+use crate::extractors::extract_bearer_token;
 
 //signup endpoint 
 //will take the decrypted user data from the auth middleware ( future me problem)

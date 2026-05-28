@@ -60,10 +60,25 @@ pub async fn get_project_by_workspace_id(pool: &PgPool, workspace_id: Uuid) -> R
         SELECT id, workspace_id, name, description, artwork_url, rss_slug, created_at
         FROM projects
         WHERE workspace_id = $1
+        ORDER BY created_at DESC
         "#,
         workspace_id
     )
     .fetch_all(pool)
+    .await
+}
+
+pub async fn get_project_by_id(pool: &PgPool, project_id: Uuid) -> Result<Project, sqlx::Error> {
+    sqlx::query_as!(
+        Project,
+        r#"
+        SELECT id, workspace_id, name, description, artwork_url, rss_slug, created_at
+        FROM projects
+        WHERE id = $1
+        "#,
+        project_id
+    )
+    .fetch_one(pool)
     .await
 }
 

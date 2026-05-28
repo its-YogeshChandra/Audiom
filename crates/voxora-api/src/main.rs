@@ -11,6 +11,9 @@ use controllers::{
     update_workspace_endpoint, delete_workspace_endpoint,
     get_workspace_members_endpoint, add_workspace_member_endpoint,
     remove_workspace_member_endpoint, change_workspace_member_role_endpoint,
+    create_project_controller, get_projects_by_workspace_controller,
+    get_project_by_id_controller, update_project_by_id_controller,
+    delete_project_by_id_controller,
 };
 
 #[actix_web::main]
@@ -42,6 +45,12 @@ pub async fn main() -> std::io::Result<()> {
             .service(add_workspace_member_endpoint)
             .service(remove_workspace_member_endpoint)
             .service(change_workspace_member_role_endpoint)
+            // projects
+            .service(create_project_controller)
+            .service(get_projects_by_workspace_controller)
+            .service(get_project_by_id_controller)
+            .service(update_project_by_id_controller)
+            .service(delete_project_by_id_controller)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
