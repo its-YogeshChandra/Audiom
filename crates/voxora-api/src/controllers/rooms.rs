@@ -27,18 +27,16 @@ pub async fn create_room_endpoint(
 pub async fn get_room_endpoint(
     req : HttpRequest , 
     pool : web::Data<PgPool> , 
-    path : web::Path<(Uuid ,)>,
-    room_id: String
+    path : web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse , actix_web::Error>{
    //have to implement auth and rbac functions 
     let user_id = extract_user_id(&req)?;
-    let workspace_id = path.into_inner().0;
+    let (workspace_id, room_id) = path.into_inner(); 
 
     require_member(pool.as_ref(), workspace_id, user_id).await?;
 
-    let room_id = room_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
     let room = get_room_by_id(pool.as_ref(), room_id).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
     Ok(HttpResponse::Ok().json(room))
 }
 
@@ -46,17 +44,14 @@ pub async fn get_room_endpoint(
 pub async fn get_rooms_endpoint(
     req : HttpRequest,
     pool : web::Data<PgPool> , 
-    path : web::Path<(Uuid ,)>,
-    project_id : String,
+    path : web::Path<(Uuid , Uuid)>,
 ) -> Result<HttpResponse , actix_web::Error>{
    //have to implement auth and rbac functions  
    let user_id = extract_user_id(&req)?;
-   let workspace_id = path.into_inner().0;
+   let (workspace_id, project_id) = path.into_inner();
 
    require_member(pool.as_ref(), workspace_id, user_id).await?;
    
-   let project_id = project_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
    let rooms = get_rooms_by_project_id(pool.as_ref(), project_id).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
    Ok(HttpResponse::Ok().json(rooms))
 }
@@ -65,17 +60,14 @@ pub async fn get_rooms_endpoint(
 pub async fn update_room_endpoint(
     req : HttpRequest,
     pool : web::Data<PgPool>,
-    path : web::Path<(Uuid ,)>,
+    path : web::Path<(Uuid , Uuid)>,
     payload : web::Json<UpdateRoom>,
-    room_id : String
 ) -> Result<HttpResponse , actix_web::Error>{
    //have to implement auth and rbac functions 
    let user_id = extract_user_id(&req)?;
-   let workspace_id = path.into_inner().0;
+   let (workspace_id, room_id) = path.into_inner();
    
    require_owner_or_admin(pool.as_ref(), workspace_id, user_id).await?;
-
-   let room_id = room_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
    
    let room = update_room(pool.as_ref(), room_id, payload.into_inner()).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     Ok(HttpResponse::Ok().json(room))
@@ -85,17 +77,15 @@ pub async fn update_room_endpoint(
 pub async fn delete_room_endpoint(
     req : HttpRequest,
     pool : web::Data<PgPool> , 
-    path : web::Path<(Uuid ,)>,
-    room_id : String
+    path : web::Path<(Uuid ,Uuid)>,
 ) -> Result<HttpResponse , actix_web::Error>{
    //have to implement auth and rbac functions  
     let user_id = extract_user_id(&req)?;
-    let workspace_id = path.into_inner().0;
+    let (workspace_id, room_id) = path.into_inner();
    
     require_owner_or_admin(pool.as_ref(), workspace_id, user_id).await?;
-
-    let room_id = room_id.parse::<Uuid>().map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     
     let room = delete_room(pool.as_ref(), room_id).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
     Ok(HttpResponse::Ok().json(room))
 }
+
