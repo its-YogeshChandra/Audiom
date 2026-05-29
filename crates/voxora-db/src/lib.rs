@@ -8,3 +8,4 @@ pub use queries::users::*;
 pub use queries::workspaces::*;
 pub use queries::projects::*;
 pub use queries::rooms::*;
+pub use queries::sessions::*;
