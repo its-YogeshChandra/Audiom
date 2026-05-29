@@ -73,6 +73,26 @@ pub async fn update_room_endpoint(
     Ok(HttpResponse::Ok().json(room))
 }
 
+
+#[put("/workspace/{id}/room/{room_id}/status")]
+pub async fn update_room_status_endpoint(
+    req : HttpRequest,
+    pool : web::Data<PgPool>,
+    path : web::Path<(Uuid, Uuid)>,
+    payload : web::Json<String>,
+) -> Result<HttpResponse , actix_web::Error>{
+   //have to implement auth and rbac functions 
+   let user_id = extract_user_id(&req)?;
+   let (workspace_id, room_id) = path.into_inner();
+   
+   require_owner_or_admin(pool.as_ref(), workspace_id, user_id).await?;
+
+   let status = payload.into_inner();
+   let room = update_room_status(pool.as_ref(), room_id, status).await.map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    Ok(HttpResponse::Ok().json(room))
+}
+
+
 #[delete("/workspace/{id}/room")]
 pub async fn delete_room_endpoint(
     req : HttpRequest,
