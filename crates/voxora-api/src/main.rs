@@ -14,6 +14,9 @@ use controllers::{
     create_project_controller, get_projects_by_workspace_controller,
     get_project_by_id_controller, update_project_by_id_controller,
     delete_project_by_id_controller,
+    create_session_controller, get_sessions_by_room_controller,
+    get_session_by_id_controller, update_session_controller,
+    delete_session_controller,
 };
 
 #[actix_web::main]
@@ -51,6 +54,12 @@ pub async fn main() -> std::io::Result<()> {
             .service(get_project_by_id_controller)
             .service(update_project_by_id_controller)
             .service(delete_project_by_id_controller)
+            // sessions
+            .service(create_session_controller)
+            .service(get_sessions_by_room_controller)
+            .service(get_session_by_id_controller)
+            .service(update_session_controller)
+            .service(delete_session_controller)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

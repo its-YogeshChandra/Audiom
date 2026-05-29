@@ -124,3 +124,27 @@ pub async fn delete_session(
    
     Ok(result.rows_affected())
 }
+
+// ── Chain verification: session belongs to workspace ──
+
+pub async fn verify_session_in_workspace(pool: &PgPool, session_id: Uuid, workspace_id: Uuid) -> bool {
+    let result = sqlx::query_scalar!(
+        r#"
+        SELECT EXISTS(
+            SELECT 1 FROM sessions s
+            JOIN rooms r ON s.room_id = r.id
+            JOIN projects p ON r.project_id = p.id
+            WHERE s.id = $1 AND p.workspace_id = $2
+        ) as "exists!"
+        "#,
+        session_id,
+        workspace_id
+    )
+    .fetch_one(pool)
+    .await;
+
+    match result {
+        Ok(exists) => exists,
+        Err(_) => false,
+    }
+}

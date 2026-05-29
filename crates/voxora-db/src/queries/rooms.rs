@@ -136,3 +136,26 @@ pub async fn delete_room(pool : &PgPool , room_id : Uuid) -> Result<u64 , sqlx::
 
     Ok(result.rows_affected())
 }
+
+// ── Chain verification: room belongs to workspace ──
+
+pub async fn verify_room_in_workspace(pool: &PgPool, room_id: Uuid, workspace_id: Uuid) -> bool {
+    let result = sqlx::query_scalar!(
+        r#"
+        SELECT EXISTS(
+            SELECT 1 FROM rooms r
+            JOIN projects p ON r.project_id = p.id
+            WHERE r.id = $1 AND p.workspace_id = $2
+        ) as "exists!"
+        "#,
+        room_id,
+        workspace_id
+    )
+    .fetch_one(pool)
+    .await;
+
+    match result {
+        Ok(exists) => exists,
+        Err(_) => false,
+    }
+}

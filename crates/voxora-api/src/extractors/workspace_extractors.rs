@@ -3,9 +3,10 @@ use uuid::Uuid;
 use voxora_core::verify_token;
 use voxora_db::{
     get_member_role, is_workspace_owner,
+    verify_room_in_workspace, verify_session_in_workspace,
     WorkspaceRole,
 };
-use actix_web::{HttpRequest};
+use actix_web::HttpRequest;
 
 
 pub fn extract_bearer_token(req: &HttpRequest) -> Result<String, actix_web::Error> {
@@ -55,8 +56,27 @@ pub async fn require_owner(pool: &PgPool, workspace_id: Uuid, user_id: Uuid) -> 
 }
 
 // ── Helper: check if user is a member ──
+
 pub async fn require_member(pool: &PgPool, workspace_id: Uuid, user_id: Uuid) -> Result<(), actix_web::Error> {
     get_member_role(pool, workspace_id, user_id).await
         .map_err(|_| actix_web::error::ErrorForbidden("You are not a member of this workspace"))?;
+    Ok(())
+}
+
+// ── Chain verification: room belongs to workspace ──
+
+pub async fn require_room_in_workspace(pool: &PgPool, room_id: Uuid, workspace_id: Uuid) -> Result<(), actix_web::Error> {
+    if !verify_room_in_workspace(pool, room_id, workspace_id).await {
+        return Err(actix_web::error::ErrorNotFound("Room not found"));
+    }
+    Ok(())
+}
+
+// ── Chain verification: session belongs to workspace ──
+
+pub async fn require_session_in_workspace(pool: &PgPool, session_id: Uuid, workspace_id: Uuid) -> Result<(), actix_web::Error> {
+    if !verify_session_in_workspace(pool, session_id, workspace_id).await {
+        return Err(actix_web::error::ErrorNotFound("Session not found"));
+    }
     Ok(())
 }
