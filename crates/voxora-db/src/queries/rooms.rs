@@ -107,7 +107,7 @@ pub async fn update_room(pool : &PgPool , room_id : Uuid , update_room : UpdateR
 }
 
 pub async fn update_room_status(pool : &PgPool , room_id : Uuid , status : String) -> Result<Room , sqlx::Error>{
-    let room = sqlx::query_as!(
+    let result = sqlx::query_as!(
         Room,
         r#"
         UPDATE rooms 
@@ -120,7 +120,8 @@ pub async fn update_room_status(pool : &PgPool , room_id : Uuid , status : Strin
     )
     .fetch_one(pool)
     .await?;
-    Ok(room)
+   
+    Ok(result)
 }
 
 pub async fn delete_room(pool : &PgPool , room_id : Uuid) -> Result<u64 , sqlx::Error>{

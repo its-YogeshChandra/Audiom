@@ -18,7 +18,7 @@ pub struct NewSession {
     pub room_id : Uuid,
     pub status : String,
     pub started_at : OffsetDateTime,
-    pub duration_ms : Option<i64>
+    pub duration_ms : Option<i32>
 }
 
 #[derive(Debug , Serialize , Deserialize)]
@@ -27,7 +27,6 @@ pub struct UpdateSession {
 }
 
 //db functions 
-
 pub async fn create_session(
     pool : &PgPool,
     data : NewSession,
@@ -35,8 +34,8 @@ pub async fn create_session(
     let session = sqlx::query_as!(
         Session,
         r#"
-        INSERT INTO sessions (room_id , status , started_at , COALESCE(duration_ms , 0))
-        VALUES ($1 , $2 , $3 , $4)
+        INSERT INTO sessions (room_id, status, started_at, duration_ms)
+        VALUES ($1, $2, $3, COALESCE($4, 0))
         RETURNING id , room_id , status , started_at , ended_at , duration_ms
         "#,
         data.room_id,
@@ -98,15 +97,11 @@ pub async fn update_session(
         Session,
         r#"
         UPDATE sessions
-        SET status = COALESCE($1 , status),
-            ended_at = COALESCE($2 , ended_at),
-            duration_ms = COALESCE($3 , duration_ms)
-        WHERE id = $4
+        SET status = COALESCE($1 , status)
+        WHERE id = $2
         RETURNING id , room_id , status , started_at , ended_at , duration_ms
         "#,
         data.status,
-        data.ended_at,
-        data.duration_ms,
         session_id,
     )
     .fetch_one(pool)
@@ -117,17 +112,15 @@ pub async fn update_session(
 pub async fn delete_session(
     pool : &PgPool,
     session_id : Uuid,
-) -> Result<Session, sqlx::Error> {
-    let session = sqlx::query_as!(
-        Session,
+) -> Result<u64, sqlx::Error> {
+    let result = sqlx::query!(
         r#"
-        DELETE FROM sessions
-        WHERE id = $1
-        RETURNING id , room_id , status , started_at , ended_at , duration_ms
+        DELETE FROM sessions WHERE id = $1
         "#,
-        session_id,
+        session_id
     )
-    .fetch_optional(pool)
+    .execute(pool)
     .await?;
-    Ok(session)
+   
+    Ok(result.rows_affected())
 }
